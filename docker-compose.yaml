@@ -1,0 +1,19 @@
+version: 3.8;
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:13-alpine
+    ports:
+      - 5432:5432
+    volumes:
+      - ./data/postgres:var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=chatty
+    networks:
+      - chatty-network
+
+networks:
+  chatty-network:
