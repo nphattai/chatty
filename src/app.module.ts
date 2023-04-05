@@ -1,12 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_INTERCEPTOR } from '@nestjs/core';
 import * as Joi from 'joi';
 import { AuthModule } from './auth/auth.module';
 import { TransformInterceptor } from './auth/interceptor/transform.interceptor';
+import { DatabaseModule } from './database/database.module';
 import { PostModule } from './post/post.module';
-import { PrismaClientExceptionFilter } from './prisma-client-exception/prisma-client-exception.filter';
-import { PrismaModule } from './prisma/prisma.module';
 import { UserModule } from './user/user.module';
 
 @Module({
@@ -15,19 +14,20 @@ import { UserModule } from './user/user.module';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
-        DATABASE_URL: Joi.string().required(),
-        JWT_SECRET: Joi.string().required()
+        JWT_SECRET: Joi.string().required(),
+        POSTGRES_HOST: Joi.string().required(),
+        POSTGRES_PORT: Joi.number().required(),
+        POSTGRES_USER: Joi.string().required(),
+        POSTGRES_PASSWORD: Joi.string().required(),
+        POSTGRES_DB: Joi.string().required(),
+        PORT: Joi.number()
       })
     }),
-    PrismaModule,
     AuthModule,
-    UserModule
+    UserModule,
+    DatabaseModule
   ],
   providers: [
-    {
-      provide: APP_FILTER,
-      useClass: PrismaClientExceptionFilter
-    },
     {
       provide: APP_INTERCEPTOR,
       useClass: TransformInterceptor

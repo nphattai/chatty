@@ -1,25 +1,27 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoginUserDto } from './dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import User from 'src/entity/user.entity';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService, private jwt: JwtService, private config: ConfigService) {}
+  constructor(
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private jwt: JwtService,
+    private config: ConfigService
+  ) {}
 
   async create(dto: CreateUserDto) {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    const user = await this.prisma.user.create({
-      data: {
-        ...dto,
-        password: hashedPassword
-      }
-    });
-
+    const user = await this.userRepository.create({ ...dto, password: hashedPassword });
+    await this.userRepository.save(user);
     delete user.password;
 
     const token = await this.signToken(user.id, user.email);
@@ -28,7 +30,7 @@ export class AuthService {
   }
 
   async login(dto: LoginUserDto) {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.userRepository.findOne({
       where: {
         email: dto.email
       }
