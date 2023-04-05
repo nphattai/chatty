@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Address from 'src/entity/address.entity';
 import User from 'src/entity/user.entity';
+import { FileService } from 'src/file/file.service';
 import { Repository } from 'typeorm';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -12,7 +13,8 @@ export class UserService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Address)
-    private readonly addressRepository: Repository<Address>
+    private readonly addressRepository: Repository<Address>,
+    private fileService: FileService
   ) {}
 
   async updateUserInfo(user: User, data: UpdateUserDto) {
@@ -58,5 +60,38 @@ export class UserService {
     });
 
     return userUpdated;
+  }
+
+  async updateAvatar(user: User, imageBuffer: Buffer, filename: string) {
+    if (user.avatar) {
+      await this.userRepository.update(user.id, {
+        ...user,
+        avatar: null
+      });
+      await this.fileService.deletePublicFile(user.avatar.id);
+    }
+
+    const avatar = await this.fileService.uploadPublicFile(imageBuffer, filename);
+
+    await this.userRepository.update(user.id, {
+      ...user,
+      avatar
+    });
+
+    return avatar;
+  }
+
+  async deleteAvatar(user: User) {
+    const fileId = user.avatar.id;
+
+    if (fileId) {
+      await this.userRepository.update(user.id, {
+        avatar: null
+      });
+
+      await this.fileService.deletePublicFile(fileId);
+    } else {
+      throw new BadRequestException();
+    }
   }
 }

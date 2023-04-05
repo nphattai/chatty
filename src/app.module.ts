@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { PostModule } from './post/post.module';
 import { UserModule } from './user/user.module';
 import { CategoryModule } from './category/category.module';
+import { FileModule } from './file/file.module';
 
 @Module({
   imports: [
@@ -21,13 +22,17 @@ import { CategoryModule } from './category/category.module';
         POSTGRES_USER: Joi.string().required(),
         POSTGRES_PASSWORD: Joi.string().required(),
         POSTGRES_DB: Joi.string().required(),
-        PORT: Joi.number()
+        PORT: Joi.number(),
+        AWS_REGION: Joi.string().required(),
+        AWS_ACCESS_KEY_ID: Joi.string().required(),
+        AWS_SECRET_ACCESS_KEY: Joi.string().required()
       })
     }),
     AuthModule,
     UserModule,
     DatabaseModule,
-    CategoryModule
+    CategoryModule,
+    FileModule
   ],
   providers: [
     {
