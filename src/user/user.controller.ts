@@ -4,6 +4,7 @@ import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import User from '../entity/user.entity';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserService } from './user.service';
+import { CreateAddressDto } from './dto/create-address.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -17,6 +18,11 @@ export class UserController {
 
   @Patch()
   async updateUser(@GetUser() user: User, @Body() dto: UpdateUserDto) {
-    return this.userService.updateById(user.id, dto);
+    return this.userService.updateUserInfo(user, dto);
+  }
+
+  @Patch('address')
+  async updateUserAddress(@GetUser() user: User, @Body() dto: CreateAddressDto) {
+    return this.userService.updateAddress(user, dto);
   }
 }
