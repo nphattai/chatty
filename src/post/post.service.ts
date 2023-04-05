@@ -1,21 +1,26 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'src/prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import Post from 'src/entity/post.entity';
 
 @Injectable()
 export class PostService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    @InjectRepository(Post)
+    private postsRepository: Repository<Post>
+  ) {}
 
   async createPost(dto: CreatePostDto) {
-    return this.prisma.post.create({ data: dto });
+    return this.postsRepository.create(dto);
   }
 
   async getPosts() {
-    return this.prisma.post.findMany();
+    return this.postsRepository.find();
   }
 
   async getPostById(id: number) {
-    return this.prisma.post.findUnique({
+    return this.postsRepository.findOne({
       where: {
         id
       }
