@@ -1,14 +1,19 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { PostService } from './post.service';
+import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { GetUser } from 'src/auth/decorator/get-user.decorator';
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
+import User from 'src/entity/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
+import { PostService } from './post.service';
 
+@UseGuards(JwtAuthGuard)
 @Controller('posts')
 export class PostController {
   constructor(private postService: PostService) {}
 
   @Post()
-  async createPost(@Body() dto: CreatePostDto) {
-    return this.postService.createPost(dto);
+  async createPost(@Body() post: CreatePostDto, @GetUser() user: User) {
+    return this.postService.createPost(post, user);
   }
 
   @Get()
@@ -16,8 +21,18 @@ export class PostController {
     return this.postService.getPosts();
   }
 
-  @Get('/:id')
+  @Get(':id')
   async getPost(@Param('id') id: string) {
     return this.postService.getPostById(Number(id));
+  }
+
+  @Patch(':id')
+  async updatePost(@Param('id') id: string, @Body() post: UpdatePostDto, @GetUser() user: User) {
+    return this.postService.updatePost(Number(id), post, user);
+  }
+
+  @Post('category')
+  async addPostToCategory(@Body() body: { postId: number; categoryId: number }, @GetUser() user: User) {
+    return this.postService.addPostToCategory(body.postId, body.categoryId, user);
   }
 }

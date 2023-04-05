@@ -1,6 +1,7 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
 import Address from './address.entity';
+import Post from './post.entity';
 
 @Entity()
 class User {
@@ -23,6 +24,9 @@ class User {
   })
   @JoinColumn()
   public address?: Address;
+
+  @OneToMany(() => Post, (post: Post) => post.author)
+  public posts: Post[];
 
   @Column({ default: new Date() })
   public createdAt: Date;

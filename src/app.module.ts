@@ -7,6 +7,7 @@ import { TransformInterceptor } from './auth/interceptor/transform.interceptor';
 import { DatabaseModule } from './database/database.module';
 import { PostModule } from './post/post.module';
 import { UserModule } from './user/user.module';
+import { CategoryModule } from './category/category.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { UserModule } from './user/user.module';
     }),
     AuthModule,
     UserModule,
-    DatabaseModule
+    DatabaseModule,
+    CategoryModule
   ],
   providers: [
     {
