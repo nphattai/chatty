@@ -22,7 +22,6 @@ export class AuthService {
 
     const user = await this.userRepository.create({ ...dto, password: hashedPassword });
     await this.userRepository.save(user);
-    delete user.password;
 
     const token = await this.signToken(user.id, user.email);
 
@@ -44,8 +43,6 @@ export class AuthService {
     if (!isMatch) {
       throw new ForbiddenException('Invalid credentials');
     }
-
-    delete user.password;
 
     const token = await this.signToken(user.id, user.email);
 

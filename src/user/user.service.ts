@@ -18,8 +18,6 @@ export class UserService {
       }
     });
 
-    delete user.password;
-
     const dataToUpdate: User = {
       ...user,
       ...data,
