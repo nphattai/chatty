@@ -94,4 +94,12 @@ export class UserService {
       throw new BadRequestException();
     }
   }
+
+  async logout(user: User) {
+    const response = await this.userRepository.update(user.id, {
+      hashedRefreshToken: null
+    });
+
+    return { status: response.affected };
+  }
 }
