@@ -27,11 +27,21 @@ export class PostService {
     return newPost;
   }
 
-  async getPosts() {
+  async getPosts(userId: number) {
     return this.postsRepository.find({
+      where: {
+        author: {
+          id: userId
+        }
+      },
       relations: {
-        author: true,
+        author: false,
         categories: true
+      },
+      select: {
+        categories: {
+          id: true
+        }
       }
     });
   }
