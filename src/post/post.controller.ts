@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import User from 'src/entity/user.entity';
@@ -17,7 +17,10 @@ export class PostController {
   }
 
   @Get()
-  async getPosts(@GetUser() user: User) {
+  async getPosts(@GetUser() user: User, @Query() search: string) {
+    if (search) {
+      return this.postService.searchForPosts(search);
+    }
     return this.postService.getPosts(user.id);
   }
 

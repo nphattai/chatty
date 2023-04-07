@@ -9,6 +9,7 @@ import { PostModule } from './post/post.module';
 import { UserModule } from './user/user.module';
 import { CategoryModule } from './category/category.module';
 import { FileModule } from './file/file.module';
+import { SearchModule } from './search/search.module';
 
 @Module({
   imports: [
@@ -35,7 +36,8 @@ import { FileModule } from './file/file.module';
     UserModule,
     DatabaseModule,
     CategoryModule,
-    FileModule
+    FileModule,
+    SearchModule
   ],
   providers: [
     {
