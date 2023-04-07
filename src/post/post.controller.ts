@@ -1,10 +1,11 @@
-import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { GetUser } from 'src/auth/decorator/get-user.decorator';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import User from 'src/entity/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostService } from './post.service';
+import { PaginationParamDto } from 'src/common/dto/pagination-param.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
@@ -17,8 +18,8 @@ export class PostController {
   }
 
   @Get()
-  async getPosts(@GetUser() user: User) {
-    return this.postService.getPosts(user.id);
+  async getPosts(@GetUser() user: User, @Query() { limit, offset, startId }: PaginationParamDto) {
+    return this.postService.getPosts(user.id, offset, limit, startId);
   }
 
   @Get(':id')

@@ -1,7 +1,7 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindManyOptions, MoreThan, Repository } from 'typeorm';
 import Post from 'src/entity/post.entity';
 import User from 'src/entity/user.entity';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -27,13 +27,31 @@ export class PostService {
     return newPost;
   }
 
-  async getPosts(userId: number) {
-    return this.postsRepository.find({
+  async getPosts(userId: number, offset: number, limit: number, startId: number) {
+    let separateCount = 0;
+    const where: FindManyOptions<Post>['where'] = {};
+
+    if (startId) {
+      separateCount = await this.postsRepository.count({
+        where: {
+          author: {
+            id: userId
+          }
+        }
+      });
+
+      where.id = MoreThan(startId);
+    }
+
+    const [items, count] = await this.postsRepository.findAndCount({
       where: {
+        ...where,
         author: {
           id: userId
         }
       },
+      skip: offset,
+      take: limit,
       relations: {
         author: false,
         categories: true
@@ -42,8 +60,16 @@ export class PostService {
         categories: {
           id: true
         }
+      },
+      order: {
+        id: 'asc'
       }
     });
+
+    return {
+      count: startId ? separateCount : count,
+      items
+    };
   }
 
   async getPostById(id: number) {
