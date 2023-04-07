@@ -1,11 +1,12 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { CreatePostDto } from './dto/create-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import Post from 'src/entity/post.entity';
 import User from 'src/entity/user.entity';
 import { UpdatePostDto } from './dto/update-post.dto';
 import Category from 'src/entity/category.entity';
+import PostsSearchService from './post-search.service';
 
 @Injectable()
 export class PostService {
@@ -13,7 +14,8 @@ export class PostService {
     @InjectRepository(Post)
     private postsRepository: Repository<Post>,
     @InjectRepository(Category)
-    private categoryRepository: Repository<Category>
+    private categoryRepository: Repository<Category>,
+    private postSearchService: PostsSearchService
   ) {}
 
   async createPost(post: CreatePostDto, user: User) {
@@ -24,7 +26,21 @@ export class PostService {
 
     await this.postsRepository.save(newPost);
 
+    await this.postSearchService.indexPost(newPost);
+
     return newPost;
+  }
+
+  async searchForPosts(text: string) {
+    const results = await this.postSearchService.search(text);
+
+    const ids = results.map((result) => result.id);
+    if (!ids.length) {
+      return [];
+    }
+    return this.postsRepository.find({
+      where: { id: In(ids) }
+    });
   }
 
   async getPosts(userId: number) {
