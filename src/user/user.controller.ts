@@ -37,4 +37,9 @@ export class UserController {
   async deleteAvatar(@GetUser() user: User) {
     return this.userService.deleteAvatar(user);
   }
+
+  @Post('logout')
+  async logout(@GetUser() user: User) {
+    return this.userService.logout(user);
+  }
 }
