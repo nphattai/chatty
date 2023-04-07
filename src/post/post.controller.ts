@@ -17,7 +17,7 @@ export class PostController {
   }
 
   @Get()
-  async getPosts(@GetUser() user: User, @Query() search: string) {
+  async getPosts(@GetUser() user: User, @Query('search') search: string) {
     if (search) {
       return this.postService.searchForPosts(search);
     }

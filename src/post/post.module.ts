@@ -4,7 +4,7 @@ import { PostService } from './post.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import Post from 'src/entity/post.entity';
 import Category from 'src/entity/category.entity';
-import PostsSearchService from './post-serch.service';
+import PostsSearchService from './post-search.service';
 import { SearchModule } from 'src/search/search.module';
 
 @Module({
