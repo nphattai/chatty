@@ -1,9 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import Address from 'src/entity/address.entity';
 import User from 'src/entity/user.entity';
 import { FileService } from 'src/file/file.service';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
@@ -14,7 +14,8 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(Address)
     private readonly addressRepository: Repository<Address>,
-    private fileService: FileService
+    private fileService: FileService,
+    private dataSource: DataSource
   ) {}
 
   async updateUserInfo(user: User, data: UpdateUserDto) {
@@ -63,33 +64,59 @@ export class UserService {
   }
 
   async updateAvatar(user: User, imageBuffer: Buffer, filename: string) {
-    if (user.avatar) {
-      await this.userRepository.update(user.id, {
+    const queryRunner = this.dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      if (user.avatar) {
+        await queryRunner.manager.update(User, user.id, {
+          ...user,
+          avatar: null
+        });
+        await this.fileService.deletePublicFile(user.avatar.id, queryRunner);
+      }
+
+      const avatar = await this.fileService.uploadPublicFile(imageBuffer, filename, queryRunner);
+
+      await queryRunner.manager.update(User, user.id, {
         ...user,
-        avatar: null
+        avatar
       });
-      await this.fileService.deletePublicFile(user.avatar.id);
+
+      await queryRunner.commitTransaction();
+      return avatar;
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw new InternalServerErrorException();
+    } finally {
+      queryRunner.release();
     }
-
-    const avatar = await this.fileService.uploadPublicFile(imageBuffer, filename);
-
-    await this.userRepository.update(user.id, {
-      ...user,
-      avatar
-    });
-
-    return avatar;
   }
 
   async deleteAvatar(user: User) {
+    const queryRunner = this.dataSource.createQueryRunner();
+
     const fileId = user.avatar.id;
 
     if (fileId) {
-      await this.userRepository.update(user.id, {
-        avatar: null
-      });
+      try {
+        await queryRunner.connect();
+        await queryRunner.startTransaction();
 
-      await this.fileService.deletePublicFile(fileId);
+        queryRunner.manager.update(User, user.id, {
+          avatar: null
+        });
+
+        await this.fileService.deletePublicFile(fileId, queryRunner);
+
+        await queryRunner.commitTransaction();
+      } catch (error) {
+        await queryRunner.rollbackTransaction();
+        throw new InternalServerErrorException();
+      } finally {
+        queryRunner.release();
+      }
     } else {
       throw new BadRequestException();
     }
