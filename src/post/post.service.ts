@@ -31,20 +31,26 @@ export class PostService {
     return newPost;
   }
 
-  async searchForPosts(text: string) {
-    const results = await this.postSearchService.search(text);
+  async searchForPosts(text: string, offset: number, limit: number) {
+    const searchResponse = await this.postSearchService.search(text, offset, limit);
 
-    const ids = results.map((result) => result.id);
+    const ids = searchResponse.result.map((result) => result.id);
     if (!ids.length) {
       return [];
     }
-    return this.postsRepository.find({
+
+    const items = await this.postsRepository.find({
       where: { id: In(ids) }
     });
+
+    return {
+      count: searchResponse.count,
+      items
+    };
   }
 
-  async getPosts(userId: number) {
-    return this.postsRepository.find({
+  async getPosts(userId: number, offset: number, limit: number) {
+    const [items, count] = await this.postsRepository.findAndCount({
       where: {
         author: {
           id: userId
@@ -58,8 +64,18 @@ export class PostService {
         categories: {
           id: true
         }
+      },
+      skip: offset,
+      take: limit,
+      order: {
+        id: 'asc'
       }
     });
+
+    return {
+      items,
+      count
+    };
   }
 
   async getPostById(id: number) {

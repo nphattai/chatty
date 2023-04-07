@@ -5,6 +5,7 @@ import User from 'src/entity/user.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostService } from './post.service';
+import { PaginationParamDto } from 'src/common/dto/pagination-param.dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('posts')
@@ -17,11 +18,11 @@ export class PostController {
   }
 
   @Get()
-  async getPosts(@GetUser() user: User, @Query('search') search: string) {
+  async getPosts(@GetUser() user: User, @Query('search') search: string, @Query() { limit, offset }: PaginationParamDto) {
     if (search) {
-      return this.postService.searchForPosts(search);
+      return this.postService.searchForPosts(search, offset, limit);
     }
-    return this.postService.getPosts(user.id);
+    return this.postService.getPosts(user.id, offset, limit);
   }
 
   @Get(':id')
